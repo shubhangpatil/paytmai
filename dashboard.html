@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paytm AI Dashboard — Multilingual Voice & AI Tracks</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts: Inter & Hind -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hind:wght@500;600;700&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            silverLight: '#F8FAFC',
+            silverPlat: '#E2E8F0',
+            silverMesh: '#CBD5E1',
+            shadySlate: '#64748B',
+            darkSlate: '#1E293B',
+            deepSteel: '#0F172A',
+            payNavy: '#002E6E',
+            tmCyan: '#00BAF2',
+            paytmYellow: '#D97706',
+            paytmGreen: '#059669',
+          },
+          fontFamily: {
+            sans: ['Inter', 'Hind', 'sans-serif'],
+            mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  
+  <style>
+    body {
+      background: radial-gradient(circle at 50% 20%, #F8FAFC 0%, #E2E8F0 25%, #CBD5E1 55%, #94A3B8 80%, #475569 100%);
+      background-size: 200% 200%;
+      animation: silverMeshMove 12s ease infinite;
+      background-attachment: fixed;
+      color: #0F172A;
+    }
+
+    @keyframes silverMeshMove {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .drop-ribbon {
+      background: linear-gradient(90deg, rgba(255,255,255,0.85) 0%, rgba(241,245,249,0.75) 50%, rgba(226,232,240,0.85) 100%);
+      backdrop-filter: blur(20px);
+      border-radius: 9999px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .drop-ribbon:hover {
+      border-radius: 2rem;
+      transform: translateY(-3px);
+      box-shadow: 0 20px 45px rgba(0, 186, 242, 0.15);
+    }
+
+    .drop-flow-content {
+      max-height: 0;
+      opacity: 0;
+      overflow: hidden;
+      transition: max-height 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+    }
+
+    .drop-ribbon:hover .drop-flow-content,
+    .drop-ribbon.expanded .drop-flow-content {
+      max-height: 700px;
+      opacity: 1;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: rgba(15, 23, 42, 0.45);
+      backdrop-filter: blur(0px);
+      opacity: 0;
+      pointer-events: none;
+      transition: backdrop-filter 0.5s ease, opacity 0.5s ease;
+    }
+
+    .modal-backdrop.active {
+      opacity: 1;
+      backdrop-filter: blur(18px);
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      transform: scale(0.92) translateY(20px);
+      opacity: 0;
+      transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.45s ease;
+    }
+
+    .modal-backdrop.active .modal-card {
+      transform: scale(1) translateY(0);
+      opacity: 1;
+    }
+
+    /* Cash Animations */
+    @keyframes cashFlySend {
+      0% { transform: translateY(40px) scale(0.6); opacity: 0; }
+      50% { opacity: 1; transform: translateY(-30px) scale(1.1); }
+      100% { transform: translateY(-100px) scale(0.8); opacity: 0; }
+    }
+
+    .cash-particle {
+      position: fixed;
+      z-index: 250;
+      pointer-events: none;
+      animation: cashFlySend 1.4s ease-out forwards;
+    }
+
+    @keyframes barWave { 0%, 100% { height: 8px; } 50% { height: 38px; } }
+    .bar-cyan { animation: barWave 1.2s infinite ease-in-out; background-color: #00BAF2; }
+    .bar-navy { animation: barWave 1.3s infinite ease-in-out 0.1s; background-color: #002E6E; }
+    .bar-green { animation: barWave 1.1s infinite ease-in-out 0.4s; background-color: #059669; }
+
+    .stagger-frame {
+      will-change: transform, opacity, filter;
+      transition: transform 0.8s cubic-bezier(0, 0.95, 0.1, 1),
+                  opacity 0.75s cubic-bezier(0, 0.95, 0.1, 1),
+                  filter 0.75s cubic-bezier(0, 0.95, 0.1, 1);
+    }
+
+    .page-dissolving .stagger-1 { opacity: 0; filter: blur(12px); transform: translateX(40px); }
+    .page-dissolving .stagger-2 { transition-delay: 60ms; opacity: 0; filter: blur(12px); transform: translateX(40px); }
+    .page-dissolving .stagger-3 { transition-delay: 120ms; opacity: 0; filter: blur(12px); transform: translateX(40px); }
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #64748B; border-radius: 4px; }
+  </style>
+</head>
+<body class="font-sans min-h-screen flex flex-col antialiased selection:bg-tmCyan selection:text-payNavy overflow-x-hidden">
+
+  <!-- Container Wrapper -->
+  <div id="app-container" class="flex-grow flex flex-col relative z-10">
+
+    <!-- Top Navigation Header -->
+    <header class="stagger-frame stagger-1 sticky top-0 z-50 py-3.5 px-6 bg-white/70 backdrop-blur-2xl border-b border-slate-300/60 shadow-sm">
+      <div class="max-w-[1700px] mx-auto flex items-center justify-between gap-4">
+        
+        <!-- Brand Logo -->
+        <a href="index.html" onclick="navigateToPage('index.html'); return false;" class="flex items-center gap-3">
+          <div class="bg-payNavy px-4 py-2 rounded-2xl shadow-md flex items-center gap-1">
+            <span class="text-white text-2xl font-black tracking-tighter">pay</span>
+            <span class="text-tmCyan text-2xl font-black tracking-tighter">tm</span>
+            <span class="text-white text-xs font-bold ml-1">AI</span>
+          </div>
+        </a>
+
+        <!-- 4-Page Flow Navigation Bar -->
+        <nav class="flex items-center gap-2 bg-slate-200/70 p-1.5 rounded-full border border-slate-300/60 text-xs font-bold text-slate-800">
+          <a href="index.html" onclick="navigateToPage('index.html'); return false;" class="px-5 py-2 rounded-full hover:bg-white/80 transition">
+            Home
+          </a>
+          <a href="dashboard.html" onclick="navigateToPage('dashboard.html'); return false;" class="px-5 py-2 rounded-full bg-payNavy text-white shadow-sm transition flex items-center gap-1.5">
+            <i data-lucide="layout-dashboard" class="w-4 h-4 text-tmCyan"></i> Dashboard
+          </a>
+          <a href="notifications.html" onclick="navigateToPage('notifications.html'); return false;" class="px-5 py-2 rounded-full hover:bg-white/80 transition flex items-center gap-1.5 relative">
+            <i data-lucide="bell" class="w-4 h-4 text-paytmYellow"></i> Notifications
+            <span class="w-2 h-2 rounded-full bg-paytmYellow animate-ping absolute top-2 right-2"></span>
+          </a>
+          <a href="about.html" onclick="navigateToPage('about.html'); return false;" class="px-5 py-2 rounded-full hover:bg-white/80 transition flex items-center gap-1.5">
+            <i data-lucide="info" class="w-4 h-4 text-paytmGreen"></i> About & Contact Us
+          </a>
+        </nav>
+
+        <!-- GLOBAL LANGUAGE SELECTOR POPUP BUTTON & BADGE -->
+        <div class="flex items-center gap-3">
+          <button onclick="openLanguageSelectorModal()" class="px-5 py-2.5 bg-payNavy text-tmCyan hover:bg-tmCyan hover:text-payNavy font-black text-xs rounded-full shadow-md transition flex items-center gap-2 border border-tmCyan/30">
+            <i data-lucide="globe" class="w-4 h-4"></i> Voice Accent: <span id="current-lang-display" class="text-white underline">Hindi (Indian Accent)</span>
+          </button>
+        </div>
+
+      </div>
+    </header>
+
+    <!-- DASHBOARD WORKSPACE -->
+    <main class="flex-grow max-w-[1700px] w-full mx-auto px-6 py-8 space-y-12">
+
+      <!-- HEADER BANNER DROP RIBBON -->
+      <div class="stagger-frame stagger-2 drop-ribbon p-8 flex flex-col sm:flex-row items-center justify-between gap-6 cursor-pointer" onclick="this.classList.toggle('expanded')">
+        <div class="flex items-center gap-5">
+          <div class="w-14 h-14 rounded-full bg-payNavy text-white flex items-center justify-center shadow-md">
+            <i data-lucide="layout-dashboard" class="w-7 h-7 text-tmCyan"></i>
+          </div>
+          <div>
+            <h1 class="text-2xl font-black text-payNavy leading-snug">Paytm AI Multilingual Operations Dashboard</h1>
+            <p class="text-xs text-slate-700 font-semibold mt-0.5">Live Processing & Transaction Successful Animations with Indian Accent Speech for 7 Languages!</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3 font-mono text-xs">
+          <button onclick="event.stopPropagation(); openLanguageSelectorModal();" class="px-4 py-2 rounded-full bg-payNavy text-white font-bold hover:bg-tmCyan hover:text-payNavy transition flex items-center gap-1.5 shadow-sm">
+            <i data-lucide="globe" class="w-4 h-4 text-tmCyan"></i> Indian Accent Voice Engine (7 Languages)
+          </button>
+        </div>
+      </div>
+
+      <!-- SECTION 1: TRACK 1 VYAPARDOST MERCHANT GROWTH AI (WITH TYPE-IN QUERY INPUT) -->
+      <div class="stagger-frame stagger-3 space-y-6">
+        <div class="drop-ribbon p-6 space-y-4" onclick="this.classList.toggle('expanded')">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-full bg-payNavy text-white flex items-center justify-center shadow-sm">
+                <i data-lucide="radio" class="w-5 h-5 text-tmCyan"></i>
+              </div>
+              <div>
+                <h2 class="text-lg font-black text-payNavy">Track 1: Paytm VyaparDost Merchant Growth AI</h2>
+                <p class="text-xs text-slate-600 font-mono">Type query or speak in Indian accent</p>
+              </div>
+            </div>
+            <button onclick="event.stopPropagation(); openTrack1Modal();" class="px-5 py-2.5 rounded-full bg-payNavy text-tmCyan text-xs font-mono font-bold hover:bg-tmCyan hover:text-payNavy transition shadow-sm flex items-center gap-1.5">
+              <i data-lucide="languages" class="w-4 h-4"></i> Voice Query Pop-up
+            </button>
+          </div>
+
+          <!-- Dropdown Flow Content -->
+          <div class="drop-flow-content space-y-6 pt-4">
+            
+            <!-- TYPE-IN QUESTION INPUT SPACE FOR TRACK 1 -->
+            <div class="p-6 rounded-3xl bg-white/80 border border-white/60 shadow-sm space-y-3" onclick="event.stopPropagation();">
+              <span class="text-xs font-mono font-bold text-payNavy uppercase flex items-center gap-2">
+                <i data-lucide="message-square-plus" class="w-4 h-4 text-tmCyan"></i> TYPE YOUR QUESTION IN PAYMENT SPACE:
+              </span>
+              <div class="flex flex-col sm:flex-row gap-3">
+                <input id="track1-user-input" type="text" placeholder="Type your merchant question (e.g. Aaj kitna bikri hua? / What are total sales?)" class="flex-grow px-5 py-3 rounded-full bg-white border border-slate-300 font-sans text-xs font-semibold focus:outline-none focus:border-payNavy shadow-inner">
+                <button onclick="handleTrack1TypedQuery()" class="px-6 py-3 bg-payNavy text-tmCyan font-black text-xs rounded-full shadow-md hover:bg-tmCyan hover:text-payNavy transition flex items-center justify-center gap-2">
+                  <i data-lucide="send" class="w-4 h-4"></i> Ask AI & Speak Indian Voice
+                </button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              <!-- Soundbox Spectrum (6 Cols) -->
+              <div class="lg:col-span-6 space-y-4">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-slate-600 font-mono">SOUNDBOX SPECTRUM</span>
+                  <button onclick="event.stopPropagation(); triggerLaptopVoiceAudio();" class="px-3 py-1.5 rounded-full bg-paytmGreen text-white text-[11px] font-mono font-bold hover:bg-payNavy transition">
+                    Speak Response
+                  </button>
+                </div>
+                <div class="h-16 flex items-center justify-center gap-2.5 bg-white/60 rounded-full px-4 border border-white/60 shadow-inner">
+                  <span class="w-2.5 bar-cyan rounded-full"></span>
+                  <span class="w-2.5 bar-navy rounded-full"></span>
+                  <span class="w-2.5 bar-green rounded-full"></span>
+                  <span class="w-2.5 bar-cyan rounded-full"></span>
+                  <span class="w-2.5 bar-navy rounded-full"></span>
+                  <span class="w-2.5 bar-green rounded-full"></span>
+                </div>
+                <div class="grid grid-cols-2 gap-3 text-xs font-mono">
+                  <div class="p-3 rounded-full bg-white/70 border border-white/60">
+                    <span class="text-slate-500 font-bold block text-[10px]">INGESTED QUERY</span>
+                    <p id="live-audio-transcript" class="text-payNavy font-black text-xs">"Bhaiya kal kitna bikri hua?"</p>
+                  </div>
+                  <div class="p-3 rounded-full bg-white/70 border border-white/60">
+                    <span class="text-paytmGreen font-bold block text-[10px]">SPEAKER TRANSLATION</span>
+                    <p id="live-audio-response" class="text-paytmGreen font-black text-xs">"₹12,400 sales recorded."</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- QR Transaction Stream (6 Cols) -->
+              <div class="lg:col-span-6 space-y-4">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-slate-600 font-mono">PAYTM UPI QR TIMELINE</span>
+                  <button onclick="event.stopPropagation(); startTransactionFlow(420, 'received', 'Sharma Store QR Payment Received');" class="px-3 py-1 rounded-full bg-tmCyan text-payNavy text-[11px] font-mono font-bold hover:bg-payNavy hover:text-white transition flex items-center gap-1">
+                    <i data-lucide="arrow-down-left" class="w-3 h-3"></i> Receive Cash Flow
+                  </button>
+                </div>
+                <div class="space-y-2 font-mono text-xs">
+                  <div class="flex justify-between p-3 rounded-full bg-white/70 border border-white/60">
+                    <span class="text-slate-500 font-bold">#PYTM9841</span>
+                    <span class="font-black text-slate-900">Gupta Kirana</span>
+                    <span class="text-paytmGreen font-black">₹150.00</span>
+                    <span class="text-paytmGreen font-bold">✓ Chime Played</span>
+                  </div>
+                  <div class="flex justify-between p-3 rounded-full bg-white/70 border border-white/60">
+                    <span class="text-slate-500 font-bold">#PYTM9842</span>
+                    <span class="font-black text-slate-900">Sharma Store</span>
+                    <span class="text-paytmGreen font-black">₹420.00</span>
+                    <span class="text-paytmGreen font-bold">✓ Chime Played</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+      <!-- SECTION 2: TRACK 2 JANSURAKSHA 60S VOICE MICRO-INSURANCE (WITH TYPE-IN QUERY INPUT) -->
+      <div class="stagger-frame stagger-3 space-y-6">
+        <div class="drop-ribbon p-6 space-y-4" onclick="this.classList.toggle('expanded')">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-full bg-paytmGreen text-white flex items-center justify-center shadow-sm">
+                <i data-lucide="shield-check" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h2 class="text-lg font-black text-payNavy">Track 2: Paytm JanSuraksha AI Micro-Insurance</h2>
+                <p class="text-xs text-slate-600 font-mono">60-Second Claim & Wallet Payout Engine</p>
+              </div>
+            </div>
+            <button onclick="event.stopPropagation(); openTrack2Modal();" class="px-5 py-2.5 rounded-full bg-paytmGreen text-white text-xs font-mono font-bold hover:bg-payNavy transition shadow-sm flex items-center gap-1.5">
+              <i data-lucide="shield-check" class="w-4 h-4"></i> 60s Claim Pop-up
+            </button>
+          </div>
+
+          <!-- Dropdown Flow Content -->
+          <div class="drop-flow-content space-y-6 pt-4">
+            
+            <!-- TYPE-IN QUESTION INPUT SPACE FOR TRACK 2 -->
+            <div class="p-6 rounded-3xl bg-white/80 border border-white/60 shadow-sm space-y-3" onclick="event.stopPropagation();">
+              <span class="text-xs font-mono font-bold text-paytmGreen uppercase flex items-center gap-2">
+                <i data-lucide="message-square-plus" class="w-4 h-4 text-paytmGreen"></i> TYPE YOUR INSURANCE CLAIM QUESTION:
+              </span>
+              <div class="flex flex-col sm:flex-row gap-3">
+                <input id="track2-user-input" type="text" placeholder="Type your claim query (e.g. Flood damage claim status? / Dukaan paani nuksaan claim)" class="flex-grow px-5 py-3 rounded-full bg-white border border-slate-300 font-sans text-xs font-semibold focus:outline-none focus:border-paytmGreen shadow-inner">
+                <button onclick="handleTrack2TypedQuery()" class="px-6 py-3 bg-paytmGreen text-white font-black text-xs rounded-full shadow-md hover:bg-payNavy transition flex items-center justify-center gap-2">
+                  <i data-lucide="send" class="w-4 h-4"></i> Submit & Disburse Payout
+                </button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div class="p-4 rounded-full bg-white/70 border border-white/60 space-y-1">
+                <span class="text-[10px] font-mono font-bold text-paytmGreen uppercase">01. VOICE AUDIO NOTE</span>
+                <p class="text-xs text-slate-900 font-black font-mono">"Dukaan me paani bhar gaya..."</p>
+              </div>
+              <div class="p-4 rounded-full bg-white/70 border border-white/60 space-y-1">
+                <span class="text-[10px] font-mono font-bold text-paytmGreen uppercase">02. COGNEE FRAUD AUDIT</span>
+                <p class="text-xs text-paytmGreen font-black font-mono">98% Verified Legitimate</p>
+              </div>
+              <div class="p-4 rounded-full bg-white/70 border border-white/60 space-y-1">
+                <span class="text-[10px] font-mono font-bold text-paytmGreen uppercase">03. WALLET DISBURSAL</span>
+                <p class="text-xs text-paytmGreen font-black font-mono">₹15,000 Wallet Disbursal</p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 3: TRACK 3 OPSGUARD AUTONOMOUS DISPUTE TEAMMATE (WITH TYPE-IN QUERY INPUT) -->
+      <div class="stagger-frame stagger-3 space-y-6">
+        <div class="drop-ribbon p-6 space-y-4" onclick="this.classList.toggle('expanded')">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-full bg-paytmYellow text-white flex items-center justify-center shadow-sm">
+                <i data-lucide="bot" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h2 class="text-lg font-black text-payNavy">Track 3: Paytm OpsGuard Autonomous Teammate</h2>
+                <p class="text-xs text-slate-600 font-mono">n8n Dispute Verification Router</p>
+              </div>
+            </div>
+            <button onclick="event.stopPropagation(); openTrack3Modal();" class="px-5 py-2.5 rounded-full bg-paytmYellow text-white text-xs font-mono font-bold hover:bg-payNavy transition shadow-sm flex items-center gap-1.5">
+              <i data-lucide="bot" class="w-4 h-4"></i> Dispute Pop-up
+            </button>
+          </div>
+
+          <!-- Dropdown Flow Content -->
+          <div class="drop-flow-content space-y-6 pt-4">
+            
+            <!-- TYPE-IN QUESTION INPUT SPACE FOR TRACK 3 -->
+            <div class="p-6 rounded-3xl bg-white/80 border border-white/60 shadow-sm space-y-3" onclick="event.stopPropagation();">
+              <span class="text-xs font-mono font-bold text-paytmYellow uppercase flex items-center gap-2">
+                <i data-lucide="message-square-plus" class="w-4 h-4 text-paytmYellow"></i> TYPE YOUR DISPUTE / REFUND QUESTION:
+              </span>
+              <div class="flex flex-col sm:flex-row gap-3">
+                <input id="track3-user-input" type="text" placeholder="Type your dispute query (e.g. Failed payment refund status? / Chargeback ticket #9021)" class="flex-grow px-5 py-3 rounded-full bg-white border border-slate-300 font-sans text-xs font-semibold focus:outline-none focus:border-paytmYellow shadow-inner">
+                <button onclick="handleTrack3TypedQuery()" class="px-6 py-3 bg-paytmYellow text-white font-black text-xs rounded-full shadow-md hover:bg-payNavy transition flex items-center justify-center gap-2">
+                  <i data-lucide="send" class="w-4 h-4"></i> Submit & Issue Refund
+                </button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="p-4 rounded-full bg-white/70 border border-white/60 flex justify-between font-mono text-xs">
+                <span class="font-black text-slate-900">UPI Chargeback Ticket #9021</span>
+                <span class="text-paytmYellow font-black">₹500.00 Refund Queued</span>
+              </div>
+              <div class="p-4 rounded-full bg-white/70 border border-white/60 flex justify-between font-mono text-xs">
+                <span class="font-black text-slate-900">Sarvam Outbound Call</span>
+                <span class="text-paytmGreen font-black">Voice Verification OK</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="py-6 text-center text-xs font-mono text-slate-700 border-t border-slate-300/50 mt-12 bg-white/40">
+      Paytm Build for India AI Hackathon • Dashboard Page
+    </footer>
+
+  </div>
+
+  <!-- REAL-TIME PAYMENT PROCESSING & SUCCESS OVERLAY -->
+  <div id="payment-status-overlay" class="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/60 backdrop-blur-xl opacity-0 pointer-events-none transition-all duration-500">
+    <div id="payment-status-card" class="w-full max-w-md p-8 rounded-3xl bg-white shadow-2xl border-2 border-white text-center space-y-6 transform scale-90 transition-all duration-500">
+      
+      <!-- Step 1: Processing State -->
+      <div id="tx-processing-state" class="space-y-4">
+        <div class="relative w-20 h-20 mx-auto flex items-center justify-center">
+          <div class="absolute inset-0 rounded-full border-4 border-tmCyan/30 border-t-payNavy animate-spin"></div>
+          <i data-lucide="refresh-cw" class="w-8 h-8 text-payNavy animate-spin"></i>
+        </div>
+        <div>
+          <h3 class="text-xl font-black text-payNavy">Processing Payment...</h3>
+          <p id="tx-processing-step" class="text-xs font-mono font-bold text-slate-500 mt-1">Connecting to Paytm Core UPI Gateway...</p>
+        </div>
+      </div>
+
+      <!-- Step 2: Success State (Initially Hidden) -->
+      <div id="tx-success-state" class="hidden space-y-4">
+        <div class="w-20 h-20 rounded-full bg-paytmGreen text-white mx-auto flex items-center justify-center shadow-lg animate-bounce">
+          <i data-lucide="check-circle-2" class="w-10 h-10"></i>
+        </div>
+        <div>
+          <span class="text-xs font-mono font-bold text-paytmGreen uppercase tracking-widest block">PAYTM UPI SUCCESS</span>
+          <h3 class="text-2xl font-black text-payNavy mt-1">✓ Transaction Successful!</h3>
+          <p id="tx-success-amount" class="text-3xl font-black text-paytmGreen font-mono mt-2">₹15,000.00</p>
+          <p id="tx-success-desc" class="text-xs text-slate-600 font-semibold mt-1">Disbursed to Kirana Paytm Wallet</p>
+        </div>
+        <button onclick="closePaymentOverlay()" class="w-full py-3 bg-payNavy text-white font-bold rounded-full text-xs hover:bg-tmCyan hover:text-payNavy transition shadow-md">
+          Done & Close
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- DELAYED BACKGROUND BLUR INTERACTIVE MODAL POPUP -->
+  <div id="ai-modal-backdrop" class="modal-backdrop flex items-center justify-center p-6">
+    <div class="modal-card max-w-2xl w-full drop-ribbon p-8 space-y-6 relative border-2 border-white shadow-2xl bg-white/95 backdrop-blur-2xl">
+      
+      <!-- Close Button (X) -->
+      <button onclick="closeAIModal()" class="absolute top-6 right-6 px-4 py-2 rounded-full bg-payNavy text-white hover:bg-tmCyan hover:text-payNavy font-bold text-xs transition shadow-md flex items-center gap-1.5">
+        Close <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+
+      <!-- Modal Dynamic Content -->
+      <div id="modal-content" class="space-y-6">
+        <!-- Injected via JS -->
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    // GLOBAL LANGUAGE ENGINE
+    let currentLang = 'hi-IN';
+    let currentLangName = 'Hindi';
+
+    const TRANSLATIONS = {
+      track1: {
+        'hi-IN': 'Kal barah hazaar chaar sau rupaye ki bikri hui hai.',
+        'en-IN': 'Yesterday total sales were twelve thousand four hundred rupees.',
+        'te-IN': 'Ninna mottham ammakalu pannerandu vela nalugu vandala roopayalu.',
+        'ta-IN': 'Netru motha virpanai panirendayirathu nannooru roobai.',
+        'kn-IN': 'Nenneya motta ammatu hanneradu savirada nannooru roopayi.',
+        'gu-IN': 'Kāle ekal vechāṇ bār hajār chār so rūpiyā hatuṁ.',
+        'mr-IN': 'Kāl ekūṇ vikrī bārā hajār shāmbhar rupaye jhālī.'
+      },
+      track2: {
+        'hi-IN': 'Pandraha hazaar rupaye claim aapke Paytm Wallet me disburse ho gaya hai.',
+        'en-IN': 'Fifteen thousand rupees claim has been disbursed into your Paytm Wallet.',
+        'te-IN': 'Padhainaidu vela roopayalu claim mee Paytm Wallet ki jama ayyindi.',
+        'ta-IN': 'Padhinainthayiram roobai claim ungal Paytm Walletil serkkappattathu.',
+        'kn-IN': 'Hadinaaidu savira roopayi claim nimma Paytm Walletge jame aagide.',
+        'gu-IN': 'Pandar hajār rūpiyā claim tamārā Paytm Wallet māṁ jamo tha’ī gayo chhe.',
+        'mr-IN': 'Panndrā hajār rupaye claim tumchyā Paytm Wallet madhye disburse jhālā āhe.'
+      },
+      track3: {
+        'hi-IN': 'Paanch sau rupaye UPI chargeback refund merchant account me issue ho gaya hai.',
+        'en-IN': 'Five hundred rupees UPI chargeback refund has been issued to your merchant account.',
+        'te-IN': 'Aidu vandala roopayalu UPI refund mee account ki vachindi.',
+        'ta-IN': 'Ainooru roobai UPI refund ungal accountukku anuppappattathu.',
+        'kn-IN': 'Aaidu nooru roopayi UPI refund nimma khātege jame aagide.',
+        'gu-IN': 'Pāñcso rūpiyā UPI refund tamārā account māṁ āvī gayo chhe.',
+        'mr-IN': 'Pāñchshe rupaye UPI refund tumchyā account madhye jāmā jhālā āhe.'
+      }
+    };
+
+    function playSoundboxChime() {
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        const ctx = new AudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+        osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.12);
+
+        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start();
+        osc.stop(ctx.currentTime + 0.35);
+      } catch (e) {
+        console.log('Audio Context Error:', e);
+      }
+    }
+
+    function getBestIndianVoice(langCode) {
+      if (!('speechSynthesis' in window)) return null;
+      const voices = window.speechSynthesis.getVoices();
+      if (!voices || voices.length === 0) return null;
+
+      let voice = voices.find(v => v.lang === langCode);
+      if (voice) return voice;
+
+      const langPrefix = langCode.split('-')[0];
+      voice = voices.find(v => v.lang.startsWith(langPrefix) || (v.lang.includes('IN') && v.name.toLowerCase().includes(langPrefix)));
+      if (voice) return voice;
+
+      voice = voices.find(v => v.lang.includes('IN') || v.lang.includes('hi') || v.name.toLowerCase().includes('india') || v.name.toLowerCase().includes('hindi') || v.name.toLowerCase().includes('rishi') || v.name.toLowerCase().includes('heera') || v.name.toLowerCase().includes('veena'));
+      if (voice) return voice;
+
+      return null;
+    }
+
+    function speakLaptopAudio(text, langCode = currentLang) {
+      playSoundboxChime();
+
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        setTimeout(() => {
+          const utterance = new SpeechSynthesisUtterance(text);
+          utterance.lang = langCode;
+          utterance.rate = 0.90;
+          utterance.pitch = 1.0;
+          utterance.volume = 1.0;
+
+          const indianVoice = getBestIndianVoice(langCode);
+          if (indianVoice) utterance.voice = indianVoice;
+
+          window.speechSynthesis.speak(utterance);
+        }, 300);
+      }
+    }
+
+    // REAL-TIME TRANSACTION PROCESSING & SUCCESS ANIMATION FLOW
+    function startTransactionFlow(amount, type = 'disbursed', description = 'Paytm Wallet Payout') {
+      const overlay = document.getElementById('payment-status-overlay');
+      const card = document.getElementById('payment-status-card');
+      const procState = document.getElementById('tx-processing-state');
+      const succState = document.getElementById('tx-success-state');
+      const stepText = document.getElementById('tx-processing-step');
+
+      procState.classList.remove('hidden');
+      succState.classList.add('hidden');
+      stepText.innerText = 'Connecting to Paytm Core UPI Gateway...';
+
+      // Show overlay with blur
+      overlay.classList.remove('opacity-0', 'pointer-events-none');
+      card.classList.remove('scale-90');
+      card.classList.add('scale-100');
+
+      // Processing steps animation
+      setTimeout(() => {
+        stepText.innerText = 'Verifying Cognee Fraud Risk & Telemetry...';
+      }, 500);
+
+      setTimeout(() => {
+        stepText.innerText = 'Executing Disbursal Payload...';
+      }, 900);
+
+      // Transition to SUCCESS STATE
+      setTimeout(() => {
+        procState.classList.add('hidden');
+        succState.classList.remove('hidden');
+
+        document.getElementById('tx-success-amount').innerText = `₹${amount.toLocaleString('en-IN')}.00`;
+        document.getElementById('tx-success-desc').innerText = description;
+
+        // Trigger flying cash particles & laptop voice audio
+        if (type === 'received') {
+          triggerCashReceiveAnimation(amount);
+        } else {
+          triggerCashSendAnimation(amount);
+        }
+
+        const voiceMsg = TRANSLATIONS[type === 'disbursed' ? 'track2' : type === 'refund' ? 'track3' : 'track1'][currentLang];
+        speakLaptopAudio(voiceMsg, currentLang);
+
+        lucide.createIcons();
+      }, 1300);
+    }
+
+    function closePaymentOverlay() {
+      const overlay = document.getElementById('payment-status-overlay');
+      const card = document.getElementById('payment-status-card');
+      card.classList.remove('scale-100');
+      card.classList.add('scale-90');
+      overlay.classList.add('opacity-0', 'pointer-events-none');
+    }
+
+    // CASH PARTICLES
+    function triggerCashReceiveAnimation(amount) {
+      for (let i = 0; i < 5; i++) {
+        const p = document.createElement('div');
+        p.className = 'cash-particle bg-tmCyan text-payNavy font-black text-sm px-3 py-1 rounded-full shadow-lg border border-white flex items-center gap-1';
+        p.style.left = `${30 + Math.random() * 40}%`;
+        p.style.top = `${60 + Math.random() * 20}%`;
+        p.innerHTML = `<i data-lucide="arrow-down-left" class="w-4 h-4"></i> +₹${amount}`;
+        document.body.appendChild(p);
+        setTimeout(() => p.remove(), 1400);
+      }
+      lucide.createIcons();
+    }
+
+    function triggerCashSendAnimation(amount) {
+      for (let i = 0; i < 6; i++) {
+        const p = document.createElement('div');
+        p.className = 'cash-particle bg-paytmGreen text-white font-black text-sm px-4 py-1.5 rounded-full shadow-xl border border-white flex items-center gap-1.5';
+        p.style.left = `${25 + Math.random() * 50}%`;
+        p.style.top = `${50 + Math.random() * 20}%`;
+        p.style.animationDelay = `${i * 120}ms`;
+        p.innerHTML = `<i data-lucide="banknote" class="w-4 h-4 text-white"></i> ₹${amount} Sent`;
+        document.body.appendChild(p);
+        setTimeout(() => p.remove(), 1600);
+      }
+      lucide.createIcons();
+    }
+
+    // LANGUAGE SELECTOR MODAL
+    function openLanguageSelectorModal() {
+      const html = `
+        <div class="space-y-6 text-left">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-3 pr-20">
+            <h3 class="text-xl font-black text-payNavy flex items-center gap-2">
+              <i data-lucide="globe" class="w-5 h-5 text-tmCyan"></i> Select Indian Accent Language Engine
+            </h3>
+            <span class="text-xs font-mono font-bold text-slate-500">7 LANGUAGES</span>
+          </div>
+
+          <p class="text-xs font-semibold text-slate-700">Choose the regional Indian accent for AI voice output across all tracks (Hindi is default):</p>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 font-mono text-xs">
+            <button onclick="setGlobalLanguage('hi-IN', 'Hindi (Indian Accent)')" class="p-3.5 rounded-2xl bg-white/80 border border-slate-300 flex items-center justify-between font-black hover:bg-payNavy hover:text-white transition shadow-sm">
+              <span>🇮🇳 Hindi (Indian Accent - Default)</span>
+              <span class="text-[10px] text-tmCyan font-bold">hi-IN</span>
+            </button>
+            <button onclick="setGlobalLanguage('en-IN', 'English (Indian Accent)')" class="p-3.5 rounded-2xl bg-white/80 border border-slate-300 flex items-center justify-between font-black hover:bg-payNavy hover:text-white transition shadow-sm">
+              <span>🇬🇧 English (Indian Accent)</span>
+              <span class="text-[10px] text-tmCyan font-bold">en-IN</span>
+            </button>
+            <button onclick="setGlobalLanguage('te-IN', 'Telugu (Indian Accent)')" class="p-3.5 rounded-2xl bg-white/80 border border-slate-300 flex items-center justify-between font-black hover:bg-payNavy hover:text-white transition shadow-sm">
+              <span>🇮🇳 Telugu (తెలుగు)</span>
+              <span class="text-[10px] text-tmCyan font-bold">te-IN</span>
+            </button>
+            <button onclick="setGlobalLanguage('ta-IN', 'Tamil (Indian Accent)')" class="p-3.5 rounded-2xl bg-white/80 border border-slate-300 flex items-center justify-between font-black hover:bg-payNavy hover:text-white transition shadow-sm">
+              <span>🇮🇳 Tamil (தமிழ்)</span>
+              <span class="text-[10px] text-tmCyan font-bold">ta-IN</span>
+            </button>
+            <button onclick="setGlobalLanguage('kn-IN', 'Kannada (Indian Accent)')" class="p-3.5 rounded-2xl bg-white/80 border border-slate-300 flex items-center justify-between font-black hover:bg-payNavy hover:text-white transition shadow-sm">
+              <span>🇮🇳 Kannada (ಕನ್ನಡ)</span>
+              <span class="text-[10px] text-tmCyan font-bold">kn-IN</span>
+            </button>
+            <button onclick="setGlobalLanguage('gu-IN', 'Gujarati (Indian Accent)')" class="p-3.5 rounded-2xl bg-white/80 border border-slate-300 flex items-center justify-between font-black hover:bg-payNavy hover:text-white transition shadow-sm">
+              <span>🇮🇳 Gujarati (ગુજરાતી)</span>
+              <span class="text-[10px] text-tmCyan font-bold">gu-IN</span>
+            </button>
+            <button onclick="setGlobalLanguage('mr-IN', 'Marathi (Indian Accent)')" class="p-3.5 rounded-2xl bg-white/80 border border-slate-300 flex items-center justify-between font-black hover:bg-payNavy hover:text-white transition shadow-sm">
+              <span>🇮🇳 Marathi (मराठी)</span>
+              <span class="text-[10px] text-tmCyan font-bold">mr-IN</span>
+            </button>
+          </div>
+        </div>
+      `;
+      openAIModal(html);
+    }
+
+    function setGlobalLanguage(code, name) {
+      currentLang = code;
+      currentLangName = name;
+      document.getElementById('current-lang-display').innerText = `${name}`;
+      
+      const confirmText = TRANSLATIONS.track1[code] || `${name} language active.`;
+      speakLaptopAudio(confirmText, code);
+      alert(`✅ Indian Accent Language Engine Set to: ${name}. Active across all Paytm tracks!`);
+    }
+
+    // MODAL OPEN/CLOSE
+    function openAIModal(htmlContent) {
+      const backdrop = document.getElementById('ai-modal-backdrop');
+      const content = document.getElementById('modal-content');
+      content.innerHTML = htmlContent;
+      lucide.createIcons();
+
+      setTimeout(() => {
+        backdrop.classList.add('active');
+      }, 50);
+    }
+
+    function closeAIModal() {
+      const backdrop = document.getElementById('ai-modal-backdrop');
+      backdrop.classList.remove('active');
+    }
+
+    // TYPED QUERY HANDLERS
+    function handleTrack1TypedQuery() {
+      const input = document.getElementById('track1-user-input').value.trim();
+      if (!input) return;
+
+      document.getElementById('live-audio-transcript').innerText = `"${input}"`;
+      const responseText = TRANSLATIONS.track1[currentLang] || 'Sales report generated successfully.';
+      document.getElementById('live-audio-response').innerText = `"${responseText}"`;
+
+      speakLaptopAudio(responseText, currentLang);
+      document.getElementById('track1-user-input').value = '';
+    }
+
+    function handleTrack2TypedQuery() {
+      const input = document.getElementById('track2-user-input').value.trim();
+      if (!input) return;
+
+      startTransactionFlow(15000, 'disbursed', '₹15,000 Micro-Insurance Claim Payout');
+      document.getElementById('track2-user-input').value = '';
+    }
+
+    function handleTrack3TypedQuery() {
+      const input = document.getElementById('track3-user-input').value.trim();
+      if (!input) return;
+
+      startTransactionFlow(500, 'refund', '₹500 UPI Chargeback Refund');
+      document.getElementById('track3-user-input').value = '';
+    }
+
+    // POPUP MODALS WITH PROCESSING & SUCCESS TRANSACTION FLOW
+    function openTrack1Modal() {
+      const responseText = TRANSLATIONS.track1[currentLang];
+      const html = `
+        <div class="space-y-6 text-left">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-3 pr-20">
+            <span class="px-3 py-1 rounded-full bg-payNavy text-tmCyan text-xs font-mono font-bold uppercase tracking-wider">TRACK 1: INDIC VOICE QUERY</span>
+            <span class="text-xs text-slate-500 font-mono font-bold">ACCENT: ${currentLangName}</span>
+          </div>
+
+          <div class="space-y-4">
+            <h3 class="text-xl font-black text-payNavy">Active Indian Accent: ${currentLangName}</h3>
+            
+            <div class="p-4 rounded-full bg-white/80 border border-slate-200 space-y-1">
+              <span class="text-slate-500 text-xs font-mono font-bold block px-2">MIC SPEECH INGESTION</span>
+              <p class="text-payNavy font-black text-base px-2">"Bhaiya kal kitna bikri hua?"</p>
+            </div>
+
+            <div class="p-4 rounded-full bg-paytmGreen/10 border border-paytmGreen/30 space-y-1">
+              <span class="text-paytmGreen text-xs font-mono font-bold block px-2">INDIAN ACCENT TRANSLATED RESPONSE</span>
+              <p class="text-paytmGreen font-black text-base px-2">"${responseText}"</p>
+            </div>
+          </div>
+
+          <button onclick="triggerTrack1VoiceAction()" class="w-full py-3.5 bg-payNavy text-tmCyan font-black rounded-full shadow-lg hover:bg-tmCyan hover:text-payNavy transition flex items-center justify-center gap-2 text-xs">
+            <i data-lucide="volume-2" class="w-4 h-4"></i> Speak Response (Indian Accent)
+          </button>
+        </div>
+      `;
+      openAIModal(html);
+    }
+
+    function triggerTrack1VoiceAction() {
+      const responseText = TRANSLATIONS.track1[currentLang];
+      speakLaptopAudio(responseText, currentLang);
+    }
+
+    function openTrack2Modal() {
+      const html = `
+        <div class="space-y-6 text-left">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-3 pr-20">
+            <span class="px-3 py-1 rounded-full bg-paytmGreen text-white text-xs font-mono font-bold uppercase tracking-wider">TRACK 2: 60S VOICE CLAIM</span>
+            <span class="text-xs text-slate-500 font-mono font-bold">ACCENT: ${currentLangName}</span>
+          </div>
+
+          <div class="space-y-4">
+            <h3 class="text-xl font-black text-payNavy">Processing 60-Second Micro-Insurance Claim</h3>
+            
+            <div class="p-4 rounded-full bg-paytmGreen/10 border border-paytmGreen/30 text-center space-y-1">
+              <span class="text-paytmGreen text-xs font-mono font-bold block">PAYTM WALLET DISBURSAL PAYLOAD</span>
+              <p class="text-3xl font-black text-paytmGreen">₹15,000.00</p>
+            </div>
+          </div>
+
+          <button onclick="triggerTrack2DisbursalAction()" class="w-full py-4 bg-paytmGreen text-white font-black rounded-full shadow-lg hover:bg-payNavy transition flex items-center justify-center gap-2 text-xs">
+            <i data-lucide="arrow-up-right" class="w-4 h-4"></i> Process Payment & Disburse ₹15,000 Payout
+          </button>
+        </div>
+      `;
+      openAIModal(html);
+    }
+
+    function triggerTrack2DisbursalAction() {
+      closeAIModal();
+      setTimeout(() => {
+        startTransactionFlow(15000, 'disbursed', '₹15,000 Micro-Insurance Claim Disbursed');
+      }, 300);
+    }
+
+    function openTrack3Modal() {
+      const html = `
+        <div class="space-y-6 text-left">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-3 pr-20">
+            <span class="px-3 py-1 rounded-full bg-paytmYellow text-white text-xs font-mono font-bold uppercase tracking-wider">TRACK 3: OPSGUARD DISPUTE</span>
+            <span class="text-xs text-slate-500 font-mono font-bold">ACCENT: ${currentLangName}</span>
+          </div>
+
+          <div class="space-y-4">
+            <h3 class="text-xl font-black text-payNavy">Executing Autonomous UPI Chargeback Refund</h3>
+            
+            <div class="p-4 rounded-full bg-paytmYellow/10 border border-paytmYellow/30 text-center space-y-1">
+              <span class="text-paytmYellow text-xs font-mono font-bold block">INSTANT REFUND PAYLOAD</span>
+              <p class="text-3xl font-black text-paytmYellow">₹500.00</p>
+            </div>
+          </div>
+
+          <button onclick="triggerTrack3RefundAction()" class="w-full py-4 bg-paytmYellow text-white font-black rounded-full shadow-lg hover:bg-payNavy transition flex items-center justify-center gap-2 text-xs">
+            <i data-lucide="arrow-up-right" class="w-4 h-4"></i> Process Payment & Issue ₹500 Refund
+          </button>
+        </div>
+      `;
+      openAIModal(html);
+    }
+
+    function triggerTrack3RefundAction() {
+      closeAIModal();
+      setTimeout(() => {
+        startTransactionFlow(500, 'refund', '₹500 UPI Chargeback Refund Issued');
+      }, 300);
+    }
+
+    function triggerLaptopVoiceAudio() {
+      const responseText = TRANSLATIONS.track1[currentLang];
+      speakLaptopAudio(responseText, currentLang);
+    }
+
+    function navigateToPage(targetUrl) {
+      const container = document.getElementById('app-container');
+      container.classList.add('page-dissolving');
+      setTimeout(() => {
+        window.location.href = targetUrl;
+      }, 700);
+    }
+  </script>
+</body>
+</html>

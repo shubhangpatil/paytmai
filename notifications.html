@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paytm AI Notifications — Multilingual System Alerts</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts: Inter & Hind -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hind:wght@500;600;700&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            silverLight: '#F8FAFC',
+            silverPlat: '#E2E8F0',
+            silverMesh: '#CBD5E1',
+            shadySlate: '#64748B',
+            darkSlate: '#1E293B',
+            deepSteel: '#0F172A',
+            payNavy: '#002E6E',
+            tmCyan: '#00BAF2',
+            paytmYellow: '#D97706',
+            paytmGreen: '#059669',
+          },
+          fontFamily: {
+            sans: ['Inter', 'Hind', 'sans-serif'],
+            mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  
+  <style>
+    body {
+      background: radial-gradient(circle at 50% 20%, #F8FAFC 0%, #E2E8F0 25%, #CBD5E1 55%, #94A3B8 80%, #475569 100%);
+      background-size: 200% 200%;
+      animation: silverMeshMove 12s ease infinite;
+      background-attachment: fixed;
+      color: #0F172A;
+    }
+
+    @keyframes silverMeshMove {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .drop-ribbon {
+      background: linear-gradient(90deg, rgba(255,255,255,0.85) 0%, rgba(241,245,249,0.75) 50%, rgba(226,232,240,0.85) 100%);
+      backdrop-filter: blur(20px);
+      border-radius: 9999px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .drop-ribbon:hover {
+      border-radius: 2rem;
+      transform: translateY(-3px);
+      box-shadow: 0 20px 45px rgba(217, 119, 6, 0.15);
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: rgba(15, 23, 42, 0.45);
+      backdrop-filter: blur(0px);
+      opacity: 0;
+      pointer-events: none;
+      transition: backdrop-filter 0.5s ease, opacity 0.5s ease;
+    }
+
+    .modal-backdrop.active {
+      opacity: 1;
+      backdrop-filter: blur(18px);
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      transform: scale(0.92) translateY(20px);
+      opacity: 0;
+      transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.45s ease;
+    }
+
+    .modal-backdrop.active .modal-card {
+      transform: scale(1) translateY(0);
+      opacity: 1;
+    }
+
+    @keyframes cashFlySend {
+      0% { transform: translateY(40px) scale(0.6); opacity: 0; }
+      50% { opacity: 1; transform: translateY(-30px) scale(1.1); }
+      100% { transform: translateY(-100px) scale(0.8); opacity: 0; }
+    }
+
+    .cash-particle {
+      position: fixed;
+      z-index: 250;
+      pointer-events: none;
+      animation: cashFlySend 1.4s ease-out forwards;
+    }
+
+    .stagger-frame {
+      will-change: transform, opacity, filter;
+      transition: transform 0.8s cubic-bezier(0, 0.95, 0.1, 1),
+                  opacity 0.75s cubic-bezier(0, 0.95, 0.1, 1),
+                  filter 0.75s cubic-bezier(0, 0.95, 0.1, 1);
+    }
+
+    .page-dissolving .stagger-1 { opacity: 0; filter: blur(12px); transform: translateX(40px); }
+    .page-dissolving .stagger-2 { transition-delay: 60ms; opacity: 0; filter: blur(12px); transform: translateX(40px); }
+    .page-dissolving .stagger-3 { transition-delay: 120ms; opacity: 0; filter: blur(12px); transform: translateX(40px); }
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #D97706; border-radius: 4px; }
+  </style>
+</head>
+<body class="font-sans min-h-screen flex flex-col antialiased selection:bg-paytmYellow selection:text-payNavy overflow-x-hidden">
+
+  <!-- Container Wrapper -->
+  <div id="app-container" class="flex-grow flex flex-col relative z-10">
+
+    <!-- Top Navigation Header -->
+    <header class="stagger-frame stagger-1 sticky top-0 z-50 py-3.5 px-6 bg-white/70 backdrop-blur-2xl border-b border-slate-300/60 shadow-sm">
+      <div class="max-w-[1700px] mx-auto flex items-center justify-between gap-4">
+        
+        <!-- Brand Logo -->
+        <a href="index.html" onclick="navigateToPage('index.html'); return false;" class="flex items-center gap-3">
+          <div class="bg-payNavy px-4 py-2 rounded-2xl shadow-md flex items-center gap-1">
+            <span class="text-white text-2xl font-black tracking-tighter">pay</span>
+            <span class="text-tmCyan text-2xl font-black tracking-tighter">tm</span>
+            <span class="text-white text-xs font-bold ml-1">AI</span>
+          </div>
+        </a>
+
+        <!-- 4-Page Flow Navigation Bar -->
+        <nav class="flex items-center gap-2 bg-slate-200/70 p-1.5 rounded-full border border-slate-300/60 text-xs font-bold text-slate-800">
+          <a href="index.html" onclick="navigateToPage('index.html'); return false;" class="px-5 py-2 rounded-full hover:bg-white/80 transition">
+            Home
+          </a>
+          <a href="dashboard.html" onclick="navigateToPage('dashboard.html'); return false;" class="px-5 py-2 rounded-full hover:bg-white/80 transition flex items-center gap-1.5">
+            <i data-lucide="layout-dashboard" class="w-4 h-4 text-tmCyan"></i> Dashboard
+          </a>
+          <a href="notifications.html" onclick="navigateToPage('notifications.html'); return false;" class="px-5 py-2 rounded-full bg-payNavy text-white shadow-sm transition flex items-center gap-1.5 relative">
+            <i data-lucide="bell" class="w-4 h-4 text-paytmYellow"></i> Notifications
+            <span id="nav-badge" class="w-2 h-2 rounded-full bg-paytmYellow animate-ping absolute top-2 right-2"></span>
+          </a>
+          <a href="about.html" onclick="navigateToPage('about.html'); return false;" class="px-5 py-2 rounded-full hover:bg-white/80 transition flex items-center gap-1.5">
+            <i data-lucide="info" class="w-4 h-4 text-paytmGreen"></i> About & Contact Us
+          </a>
+        </nav>
+
+        <!-- Notification Bell Quick Counter -->
+        <div class="flex items-center gap-3">
+          <div class="bg-white/80 px-4 py-2 rounded-full border border-slate-300 shadow-sm flex items-center gap-2">
+            <i data-lucide="bell-ring" class="w-4 h-4 text-paytmYellow animate-bounce"></i>
+            <span id="unread-count" class="text-xs font-black text-payNavy">4 Unread Alerts</span>
+          </div>
+        </div>
+
+      </div>
+    </header>
+
+    <!-- NOTIFICATIONS WORKSPACE -->
+    <main class="flex-grow max-w-[1400px] w-full mx-auto px-6 py-8 space-y-8">
+
+      <!-- HEADER BANNER WITH NOTIFICATION SYMBOL -->
+      <div class="stagger-frame stagger-2 drop-ribbon p-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+        <div class="flex items-center gap-5">
+          <div class="w-16 h-16 rounded-full bg-paytmYellow text-white flex items-center justify-center shadow-lg relative">
+            <i data-lucide="bell" class="w-8 h-8"></i>
+            <span class="w-3.5 h-3.5 rounded-full bg-tmCyan border-2 border-white absolute top-2 right-2"></span>
+          </div>
+          <div>
+            <h1 class="text-2xl font-black text-payNavy leading-snug">Paytm AI Real-Time System Notifications</h1>
+            <p class="text-xs text-slate-700 font-semibold mt-0.5">Click any alert to process payment & view successful transaction screens with Indian Accent Speech!</p>
+          </div>
+        </div>
+        <button onclick="markAllAsRead()" class="px-5 py-2.5 bg-payNavy text-white font-black text-xs rounded-full shadow-md hover:bg-tmCyan hover:text-payNavy transition flex items-center gap-2">
+          <i data-lucide="check-check" class="w-4 h-4"></i> Mark All as Read
+        </button>
+      </div>
+
+      <!-- NOTIFICATION LIST STREAM (Stagger Frame 3) -->
+      <div class="stagger-frame stagger-3 space-y-4">
+        
+        <!-- Notification Item 1: Soundbox Speech -->
+        <div onclick="openNotificationModal('speech')" class="drop-ribbon p-6 flex items-start justify-between gap-4 cursor-pointer group">
+          <div class="flex items-start gap-4">
+            <div class="w-10 h-10 rounded-full bg-payNavy text-tmCyan flex items-center justify-center shadow-sm shrink-0 mt-1">
+              <i data-lucide="volume-2" class="w-5 h-5"></i>
+            </div>
+            <div class="space-y-1">
+              <div class="flex items-center gap-2">
+                <span class="px-2.5 py-0.5 rounded-full bg-payNavy/10 text-payNavy text-[10px] font-black uppercase font-mono">Track 1: VyaparDost Voice</span>
+                <span class="text-[11px] text-slate-500 font-mono">2 mins ago</span>
+              </div>
+              <h3 class="text-sm font-black text-payNavy group-hover:text-tmCyan transition">Hindi Speech Query Processed for Sharma Kirana Store</h3>
+              <p class="text-xs text-slate-700 font-semibold">Soundbox Mic transcribed: "Bhaiya kal kitna bikri hua?" ➔ Soundbox Speaker played: "₹12,400 total sales."</p>
+            </div>
+          </div>
+          <button class="px-3.5 py-1.5 rounded-full bg-payNavy text-tmCyan font-mono font-bold text-xs shrink-0 flex items-center gap-1.5 shadow-sm">
+            <i data-lucide="external-link" class="w-3.5 h-3.5"></i> View Pop-up
+          </button>
+        </div>
+
+        <!-- Notification Item 2: JanSuraksha Claim -->
+        <div onclick="openNotificationModal('claim')" class="drop-ribbon p-6 flex items-start justify-between gap-4 cursor-pointer group">
+          <div class="flex items-start gap-4">
+            <div class="w-10 h-10 rounded-full bg-paytmGreen text-white flex items-center justify-center shadow-md shrink-0 mt-1">
+              <i data-lucide="shield-check" class="w-5 h-5"></i>
+            </div>
+            <div class="space-y-1">
+              <div class="flex items-center gap-2">
+                <span class="px-2.5 py-0.5 rounded-full bg-paytmGreen/10 text-paytmGreen text-[10px] font-black uppercase font-mono">Track 2: JanSuraksha Claim</span>
+                <span class="text-[11px] text-slate-500 font-mono">8 mins ago</span>
+              </div>
+              <h3 class="text-sm font-black text-payNavy group-hover:text-paytmGreen transition">₹15,000 Micro-Insurance Claim Approved & Disbursed!</h3>
+              <p class="text-xs text-slate-700 font-semibold">15-second voice note for shop flood damage verified (98% Cognee fraud score). Disbursed in 58 seconds.</p>
+            </div>
+          </div>
+          <button class="px-3.5 py-1.5 rounded-full bg-paytmGreen text-white font-mono font-bold text-xs shrink-0 flex items-center gap-1.5 shadow-sm">
+            <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i> Process Payment & Disburse
+          </button>
+        </div>
+
+        <!-- Notification Item 3: OpsGuard Dispute -->
+        <div onclick="openNotificationModal('dispute')" class="drop-ribbon p-6 flex items-start justify-between gap-4 cursor-pointer group">
+          <div class="flex items-start gap-4">
+            <div class="w-10 h-10 rounded-full bg-paytmYellow text-white flex items-center justify-center shadow-md shrink-0 mt-1">
+              <i data-lucide="bot" class="w-5 h-5"></i>
+            </div>
+            <div class="space-y-1">
+              <div class="flex items-center gap-2">
+                <span class="px-2.5 py-0.5 rounded-full bg-paytmYellow/10 text-paytmYellow text-[10px] font-black uppercase font-mono">Track 3: OpsGuard Teammate</span>
+                <span class="text-[11px] text-slate-500 font-mono">15 mins ago</span>
+              </div>
+              <h3 class="text-sm font-black text-payNavy group-hover:text-paytmYellow transition">UPI Chargeback Ticket #9021 Autonomously Resolved</h3>
+              <p class="text-xs text-slate-700 font-semibold">Sarvam AI completed outbound phone call in Hindi. Verified QR telemetry and issued ₹500 instant refund.</p>
+            </div>
+          </div>
+          <button class="px-3.5 py-1.5 rounded-full bg-paytmYellow text-white font-mono font-bold text-xs shrink-0 flex items-center gap-1.5 shadow-sm">
+            <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i> Process Payment & Refund
+          </button>
+        </div>
+
+      </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="py-6 text-center text-xs font-mono text-slate-700 border-t border-slate-300/50 mt-12 bg-white/40">
+      Paytm Build for India AI Hackathon • Notifications Page
+    </footer>
+
+  </div>
+
+  <!-- REAL-TIME PAYMENT PROCESSING & SUCCESS OVERLAY -->
+  <div id="payment-status-overlay" class="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/60 backdrop-blur-xl opacity-0 pointer-events-none transition-all duration-500">
+    <div id="payment-status-card" class="w-full max-w-md p-8 rounded-3xl bg-white shadow-2xl border-2 border-white text-center space-y-6 transform scale-90 transition-all duration-500">
+      
+      <!-- Step 1: Processing State -->
+      <div id="tx-processing-state" class="space-y-4">
+        <div class="relative w-20 h-20 mx-auto flex items-center justify-center">
+          <div class="absolute inset-0 rounded-full border-4 border-tmCyan/30 border-t-payNavy animate-spin"></div>
+          <i data-lucide="refresh-cw" class="w-8 h-8 text-payNavy animate-spin"></i>
+        </div>
+        <div>
+          <h3 class="text-xl font-black text-payNavy">Processing Payment...</h3>
+          <p id="tx-processing-step" class="text-xs font-mono font-bold text-slate-500 mt-1">Connecting to Paytm Core UPI Gateway...</p>
+        </div>
+      </div>
+
+      <!-- Step 2: Success State -->
+      <div id="tx-success-state" class="hidden space-y-4">
+        <div class="w-20 h-20 rounded-full bg-paytmGreen text-white mx-auto flex items-center justify-center shadow-lg animate-bounce">
+          <i data-lucide="check-circle-2" class="w-10 h-10"></i>
+        </div>
+        <div>
+          <span class="text-xs font-mono font-bold text-paytmGreen uppercase tracking-widest block">PAYTM UPI SUCCESS</span>
+          <h3 class="text-2xl font-black text-payNavy mt-1">✓ Transaction Successful!</h3>
+          <p id="tx-success-amount" class="text-3xl font-black text-paytmGreen font-mono mt-2">₹15,000.00</p>
+          <p id="tx-success-desc" class="text-xs text-slate-600 font-semibold mt-1">Disbursed to Kirana Paytm Wallet</p>
+        </div>
+        <button onclick="closePaymentOverlay()" class="w-full py-3 bg-payNavy text-white font-bold rounded-full text-xs hover:bg-tmCyan hover:text-payNavy transition shadow-md">
+          Done & Close
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- DELAYED BACKGROUND BLUR INTERACTIVE MODAL POPUP -->
+  <div id="ai-modal-backdrop" class="modal-backdrop flex items-center justify-center p-6">
+    <div class="modal-card max-w-2xl w-full drop-ribbon p-8 space-y-6 relative border-2 border-white shadow-2xl bg-white/95 backdrop-blur-2xl">
+      
+      <button onclick="closeAIModal()" class="absolute top-6 right-6 px-4 py-2 rounded-full bg-payNavy text-white hover:bg-tmCyan hover:text-payNavy font-bold text-xs transition shadow-md flex items-center gap-1.5">
+        Close <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+
+      <div id="modal-content" class="space-y-6">
+        <!-- Content injected via JS -->
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    function playSoundboxChime() {
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        const ctx = new AudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+        osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.12);
+
+        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start();
+        osc.stop(ctx.currentTime + 0.35);
+      } catch (e) {
+        console.log('Audio Context Error:', e);
+      }
+    }
+
+    function getBestIndianVoice(langCode) {
+      if (!('speechSynthesis' in window)) return null;
+      const voices = window.speechSynthesis.getVoices();
+      if (!voices || voices.length === 0) return null;
+
+      let voice = voices.find(v => v.lang === langCode);
+      if (voice) return voice;
+
+      const langPrefix = langCode.split('-')[0];
+      voice = voices.find(v => v.lang.startsWith(langPrefix) || (v.lang.includes('IN') && v.name.toLowerCase().includes(langPrefix)));
+      if (voice) return voice;
+
+      voice = voices.find(v => v.lang.includes('IN') || v.lang.includes('hi') || v.name.toLowerCase().includes('india') || v.name.toLowerCase().includes('hindi') || v.name.toLowerCase().includes('rishi') || v.name.toLowerCase().includes('heera') || v.name.toLowerCase().includes('veena'));
+      if (voice) return voice;
+
+      return null;
+    }
+
+    function speakLaptopAudio(text, langCode = 'hi-IN') {
+      playSoundboxChime();
+
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        setTimeout(() => {
+          const utterance = new SpeechSynthesisUtterance(text);
+          utterance.lang = langCode;
+          utterance.rate = 0.90;
+          utterance.pitch = 1.0;
+          utterance.volume = 1.0;
+
+          const indianVoice = getBestIndianVoice(langCode);
+          if (indianVoice) utterance.voice = indianVoice;
+
+          window.speechSynthesis.speak(utterance);
+        }, 300);
+      }
+    }
+
+    function startTransactionFlow(amount, type = 'disbursed', description = 'Paytm Wallet Payout') {
+      const overlay = document.getElementById('payment-status-overlay');
+      const card = document.getElementById('payment-status-card');
+      const procState = document.getElementById('tx-processing-state');
+      const succState = document.getElementById('tx-success-state');
+      const stepText = document.getElementById('tx-processing-step');
+
+      procState.classList.remove('hidden');
+      succState.classList.add('hidden');
+      stepText.innerText = 'Connecting to Paytm Core UPI Gateway...';
+
+      overlay.classList.remove('opacity-0', 'pointer-events-none');
+      card.classList.remove('scale-90');
+      card.classList.add('scale-100');
+
+      setTimeout(() => {
+        stepText.innerText = 'Executing Disbursal Payload...';
+      }, 700);
+
+      setTimeout(() => {
+        procState.classList.add('hidden');
+        succState.classList.remove('hidden');
+
+        document.getElementById('tx-success-amount').innerText = `₹${amount.toLocaleString('en-IN')}.00`;
+        document.getElementById('tx-success-desc').innerText = description;
+
+        triggerCashSendAnimation(amount);
+        speakLaptopAudio(type === 'disbursed' ? 'Pandraha hazaar rupaye claim aapke Paytm Wallet me disburse ho gaya hai.' : 'Paanch sau rupaye refund issue kar diya gaya hai.', 'hi-IN');
+
+        lucide.createIcons();
+      }, 1300);
+    }
+
+    function closePaymentOverlay() {
+      const overlay = document.getElementById('payment-status-overlay');
+      const card = document.getElementById('payment-status-card');
+      card.classList.remove('scale-100');
+      card.classList.add('scale-90');
+      overlay.classList.add('opacity-0', 'pointer-events-none');
+    }
+
+    function triggerCashSendAnimation(amount) {
+      for (let i = 0; i < 6; i++) {
+        const p = document.createElement('div');
+        p.className = 'cash-particle bg-paytmGreen text-white font-black text-sm px-4 py-1.5 rounded-full shadow-xl border border-white flex items-center gap-1.5';
+        p.style.left = `${25 + Math.random() * 50}%`;
+        p.style.top = `${50 + Math.random() * 20}%`;
+        p.style.animationDelay = `${i * 120}ms`;
+        p.innerHTML = `<i data-lucide="banknote" class="w-4 h-4 text-white"></i> ₹${amount} Sent`;
+        document.body.appendChild(p);
+        setTimeout(() => p.remove(), 1600);
+      }
+      lucide.createIcons();
+    }
+
+    function openAIModal(htmlContent) {
+      const backdrop = document.getElementById('ai-modal-backdrop');
+      const content = document.getElementById('modal-content');
+      content.innerHTML = htmlContent;
+      lucide.createIcons();
+
+      setTimeout(() => {
+        backdrop.classList.add('active');
+      }, 50);
+    }
+
+    function closeAIModal() {
+      const backdrop = document.getElementById('ai-modal-backdrop');
+      backdrop.classList.remove('active');
+    }
+
+    function openNotificationModal(type) {
+      if (type === 'speech') {
+        const html = `
+          <div class="space-y-6 text-left">
+            <div class="flex items-center justify-between border-b border-slate-200 pb-3 pr-20">
+              <h3 class="text-xl font-black text-payNavy">Indic Voice Query Alert</h3>
+              <span class="text-xs font-mono font-bold text-slate-500">SARVAM STT</span>
+            </div>
+            <div class="p-4 rounded-full bg-white/80 border border-slate-200 text-center font-mono">
+              <span class="text-xs font-bold text-slate-500 block">TRANSCRIPT</span>
+              <p class="text-payNavy font-black text-base">"Bhaiya kal kitna bikri hua?"</p>
+            </div>
+            <button onclick="speakLaptopAudio('Kal barah hazaar chaar sau rupaye ki bikri hui hai.', 'hi-IN')" class="w-full py-3.5 bg-payNavy text-tmCyan font-black rounded-full shadow-md text-xs flex items-center justify-center gap-2">
+              <i data-lucide="volume-2" class="w-4 h-4"></i> Speak Voice Alert (Indian Accent)
+            </button>
+          </div>
+        `;
+        openAIModal(html);
+      } else if (type === 'claim') {
+        const html = `
+          <div class="space-y-6 text-left">
+            <div class="flex items-center justify-between border-b border-slate-200 pb-3 pr-20">
+              <h3 class="text-xl font-black text-paytmGreen">₹15,000 Micro-Insurance Disbursal</h3>
+              <span class="text-xs font-mono font-bold text-slate-500">JAN-SURAKSHA</span>
+            </div>
+            <div class="p-4 rounded-full bg-paytmGreen/10 border border-paytmGreen/30 text-center space-y-1 font-mono">
+              <span class="text-xs font-bold text-paytmGreen block">DISBURSAL PAYLOAD</span>
+              <p class="text-3xl font-black text-paytmGreen">₹15,000.00</p>
+            </div>
+            <button onclick="triggerTrack2DisbursalAction()" class="w-full py-3.5 bg-paytmGreen text-white font-black rounded-full shadow-md text-xs flex items-center justify-center gap-2">
+              <i data-lucide="arrow-up-right" class="w-4 h-4"></i> Process Payment & Disburse Payout
+            </button>
+          </div>
+        `;
+        openAIModal(html);
+      } else if (type === 'dispute') {
+        const html = `
+          <div class="space-y-6 text-left">
+            <div class="flex items-center justify-between border-b border-slate-200 pb-3 pr-20">
+              <h3 class="text-xl font-black text-paytmYellow">UPI Chargeback Refund Alert</h3>
+              <span class="text-xs font-mono font-bold text-slate-500">OPSGUARD</span>
+            </div>
+            <div class="p-4 rounded-full bg-paytmYellow/10 border border-paytmYellow/30 text-center space-y-1 font-mono">
+              <span class="text-xs font-bold text-paytmYellow block">INSTANT REFUND PAYLOAD</span>
+              <p class="text-3xl font-black text-paytmYellow">₹500.00</p>
+            </div>
+            <button onclick="triggerTrack3RefundAction()" class="w-full py-3.5 bg-paytmYellow text-white font-black rounded-full shadow-md text-xs flex items-center justify-center gap-2">
+              <i data-lucide="arrow-up-right" class="w-4 h-4"></i> Process Payment & Issue Refund
+            </button>
+          </div>
+        `;
+        openAIModal(html);
+      }
+    }
+
+    function triggerTrack2DisbursalAction() {
+      closeAIModal();
+      setTimeout(() => {
+        startTransactionFlow(15000, 'disbursed', '₹15,000 Micro-Insurance Disbursed');
+      }, 300);
+    }
+
+    function triggerTrack3RefundAction() {
+      closeAIModal();
+      setTimeout(() => {
+        startTransactionFlow(500, 'refund', '₹500 UPI Chargeback Refund Issued');
+      }, 300);
+    }
+
+    function markAllAsRead() {
+      document.getElementById('unread-count').innerText = '0 Unread Alerts';
+      document.getElementById('nav-badge').style.display = 'none';
+      alert('✓ All notifications marked as read!');
+    }
+
+    function navigateToPage(targetUrl) {
+      const container = document.getElementById('app-container');
+      container.classList.add('page-dissolving');
+      setTimeout(() => {
+        window.location.href = targetUrl;
+      }, 700);
+    }
+  </script>
+</body>
+</html>
